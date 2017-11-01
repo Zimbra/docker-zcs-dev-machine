@@ -1,0 +1,116 @@
+#!/bin/bash
+# Upgrade ZCS to support SOLR
+# Prerequites
+# Checkout feature/solr branch of:
+# - zm-mailbox
+# - zm-build
+# - zm-db-conf
+# Checkout develop branch of
+# - zm-ldap-utilities
+# - zm-zcs
+# Have a zimbra/zm-solr-docker container on your network
+# 
+
+# TODO - update this to point to the top-level directory where you have all of your repos checked out.
+zcs=/home/zimbra/zcs
+
+if [ $(whoami) != "root" ]
+then
+	echo "please run this as root"
+	exit 1
+fi
+
+
+function log {
+    lvl="$1"
+    msg="$2"
+
+    >&2 echo "$(date) [$lvl] $msg"
+}
+
+function log_error {
+   msg="$1"
+   log ERROR "$msg"
+}
+
+function log_info {
+   msg="$1"
+   log INFO "$msg"
+}
+
+if [ ! -d $zcs ]; then
+    log_error "Please edit the value of 'zcs' at the top of this script to point to where you have all of your repos checked out."
+    exit 1
+fi
+
+cd $zcs
+
+for r in zm-mailbox zm-build zm-db-conf; do
+    if [ ! -d $r ]; then
+        log_error "Please clone $r into '$zcs' and checkout the feature/solr branch"
+        exit 1
+    fi
+done
+
+for r in zm-zcs zm-ldap-utilities; do
+    if [ ! -d $r ]; then
+        log_error "Please clone $r into '$zcs' and checkout the develop branch"
+        exit 1
+    fi
+done
+
+log_info "installing zmupgrade.pm"
+cp zm-build/rpmconf/Upgrade/zmupgrade.pm /opt/zimbra/libexec/zmupgrade.pm
+chmod 755 /opt/zimbra/libexec/zmupgrade.pm
+
+log_info "installing database migration script"
+cp zm-db-conf/src/db/migration/migrate20170829-SearchHistory.pl /opt/zimbra/libexec/scripts/migrate20170829-SearchHistory.pl
+chmod 775 /opt/zimbra/libexec/scripts/migrate20170829-SearchHistory.pl
+
+log_info "patching zmsetup.pl"
+cat zm-build/rpmconf/Install/zmsetup.pl | sed '/use NetAddr/ a\zmupgrade::runSchemaUpgrade(108);\nexit;\n' > /opt/zimbra/libexec/zmsetup.pl
+chmod 755 /opt/zimbra/libexec/zmsetup.pl
+
+log_info "running patched zmsetup.pl"
+/opt/zimbra/libexec/zmsetup.pl
+
+log_info "installing database scripts"
+cp zm-db-conf/src/db/mysql/create_database.sql /opt/zimbra/db/create_database.sql
+chmod 444 /opt/zimbra/db/create_database.sql
+cp zm-db-conf/src/db/mysql/db.sql /opt/zimbra/db/db.sql
+chmod 444 /opt/zimbra/db/db.sql
+
+log_info "purging old lucene jar files"
+find /opt/zimbra -name 'lucene-*3.5*.jar' -delete
+
+for j in lucene-core-6.6.0.jar lucene-analyzers-common-6.6.0.jar solr-solrj-6.6.0.jar solr-core-6.6.0.jar noggit-0.7.jar httpmime-4.3.5.jar zookeeper-3.4.5.jar; do 
+    jp=$(find /home/zimbra/.ivy2/cache -name $j)
+        log_info "installing $jp"
+	cp $jp /opt/zimbra/lib/jars/
+	cp $jp /opt/zimbra/jetty/webapps/service/WEB-INF/lib/
+done
+
+log_info "fixing jar directory permissions"
+chmod -R a+r /opt/zimbra/lib/jars
+chmod -R a+r /opt/zimbra/jetty/webapps/service/WEB-INF/lib
+
+for d in native common soap client store; do 
+    log_info "deploying zm-mailbox/$d"
+    sudo -i -u zimbra /bin/bash -c "cd $zcs/zm-mailbox/$d; ant clean compile publish-local deploy"
+done
+sudo -i -u zimbra /bin/bash -c "zmmailboxdctl restart"
+
+
+log_info "updating LDAP schema"
+chmod -R o+w /opt/zimbra/common/etc/openldap/schema
+chmod o+w /opt/zimbra/conf/zimbra.ldif
+chmod +w /opt/zimbra/conf/attrs/zimbra-attrs.xml
+chmod -R o+w /opt/zimbra/common/etc/openldap/zimbra
+sudo -i -u zimbra /bin/bash -c "cd $zcs/zm-mailbox/store; ant update-ldap-schema"
+
+
+log_info "Updating zimbraIndexURL"
+sudo -i -u zimbra /bin/bash -c "zmprov mcf zimbraIndexURL solr:http://solr:8983/solr"
+log_info "restarting services"
+sudo -i -u zimbra /bin/bash -c "zmcontrol restart"
+log_info "all done!"
