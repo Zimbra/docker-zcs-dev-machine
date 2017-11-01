@@ -1,0 +1,23 @@
+#!/bin/bash
+
+ZSD="zm-solr-docker-deps"
+ZS="zm-solr"
+ZM="zm-mailbox"
+IVY_CACHE="/home/zimbra/.ivy2/cache"
+TAR="${ZSD}-$(date +'%Y%m%d').tar.gz"
+
+solr_home="$ZSD/opt/solr/server/solr"
+mkdir -p "$solr_home"
+cp "$ZS/conf/solr.xml" "$solr_home/solr.xml"
+cp "$ZS/conf/zoo.cfg" "$solr_home/zoo.cfg"
+mkdir -p "$solr_home/configsets"
+cp -r "$ZS/conf/configsets/zimbra" "$solr_home/configsets/"
+# TODO - once ZIMBRA-144 merged:
+# cp -r "$ZS/conf/configsets/events" "$solr_home/configsets/"
+mkdir -p "$solr_home/lib"
+cp "$ZS/build/solrplugins.jar" "$solr_home/lib/solrplugins.jar"
+cp $ZM/common/build/zm-common*.jar "$solr_home/lib/"
+cp "$IVY_CACHE/javax.mail/mail/jars/mail-1.4.5.jar" "$solr_home/lib/"
+
+tar cfz ${TAR} $ZSD
+chmod 777 ${TAR}
