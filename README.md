@@ -127,8 +127,21 @@ The setting for `REPO_DIR` should _not_ normally be changed in most cases.  If y
 
 **Important!** Please read the notes in the `DOT-env` file for special considerations if you are running _Docker for Windows_ and are executing docker commands from within a _Windows Subsystem for Linux_ (WSL) shell!!
 
+### SOLR-related Environment Variables
 
-Here are a few special directories.
+The `SOLR_MODE` environment variable controls how _SOLR_ will be started and how ZCS connects to it.  Valid values for his setting are:
+
+- `cloud`
+- `standalone`
+
+The `SOLR_MEMORY` environment variable controls how much RAM is allocated to the _SOLR_ process.
+
+Here are the defaults (from the `DOT-env` file that you copy to `.env`):
+
+	SOLR_MODE=cloud
+	SOLR_MEMORY=2g
+
+## special directories
 
 ### home-zimbra
 
