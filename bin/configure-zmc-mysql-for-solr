@@ -1,0 +1,100 @@
+#!/bin/bash
+# Upgrade ZCS to support SOLR
+########################################################################
+# Prerequites - Do the following BEFORE running this script!
+########################################################################
+# Checkout feature/solr branch of:
+# - zm-mailbox
+# - zm-build
+# - zm-db-conf
+#
+# Have a zimbra/zm-solr-docker container on your network (which will happen automatically if you
+# are reading this).
+#
+# Update the `zcs` variable (see the TODO below)
+#
+# ENVIRONMENT VARIABLES USED
+#
+# This script will use the following environment variable (that should be configured in your .env
+# file BEFORE `docker-compose up -d` as it is also used by the SOLR container start-up to determine
+# how it is started and conigured):
+#
+# SOLR_MODE cloud|standalone
+#
+
+# TODO - update this to point to the top-level directory where you have all of your repos checked out.
+zcs=/home/zimbra/zcs
+
+if [ $(whoami) != "root" ]
+then
+	echo "please run this as root"
+	exit 1
+fi
+
+
+function log {
+    lvl="$1"
+    msg="$2"
+
+    >&2 echo "$(date) [$lvl] $msg"
+}
+
+function log_error {
+   msg="$1"
+   log ERROR "$msg"
+}
+
+function log_info {
+   msg="$1"
+   log INFO "$msg"
+}
+
+if [ ! -d $zcs ]; then
+    log_error "Please edit the value of 'zcs' at the top of this script to point to where you have all of your repos checked out."
+    exit 1
+fi
+
+cd $zcs
+
+branch="feature/solr"
+ext=0
+for r in zm-mailbox zm-build zm-db-conf; do
+    if [ ! -d $r ]; then
+        if [ "$r" = "zm-db-conf" ]; then 
+            branch="feature/ha_solr"
+        else
+            branch="feature/solr"
+        fi
+
+        log_error "Please clone $r into '$zcs' and checkout the $branch branch"
+        ext=1
+    fi
+done
+
+if [ $ext == 1 ]; then
+    exit 1
+fi
+
+log_info "installing zmupgrade.pm"
+cp zm-build/rpmconf/Upgrade/zmupgrade.pm /opt/zimbra/libexec/zmupgrade.pm
+chmod 755 /opt/zimbra/libexec/zmupgrade.pm
+
+log_info "installing database migration scripts"
+cp zm-db-conf/src/db/migration/migrate20170829-SearchHistory.pl /opt/zimbra/libexec/scripts/migrate20170829-SearchHistory.pl
+chmod 775 /opt/zimbra/libexec/scripts/migrate20170829-SearchHistory.pl
+
+cp zm-db-conf/src/db/migration/migrate20180110-DistributedRedolog.pl /opt/zimbra/libexec/scripts/migrate20180110-DistributedRedolog.pl
+chmod 775 /opt/zimbra/libexec/scripts/migrate20180110-DistributedRedolog.pl
+
+log_info "patching zmsetup.pl"
+cat zm-build/rpmconf/Install/zmsetup.pl | sed '/use NetAddr/ a\zmupgrade::runSchemaUpgrade(108); zmupgrade::runSchemaUpgrade(109);\nexit;\n' > /opt/zimbra/libexec/zmsetup.pl
+chmod 755 /opt/zimbra/libexec/zmsetup.pl
+
+log_info "running patched zmsetup.pl"
+/opt/zimbra/libexec/zmsetup.pl
+
+log_info "installing database scripts"
+cp zm-db-conf/src/db/mysql/create_database.sql /opt/zimbra/db/create_database.sql
+chmod 444 /opt/zimbra/db/create_database.sql
+cp zm-db-conf/src/db/mysql/db.sql /opt/zimbra/db/db.sql
+chmod 444 /opt/zimbra/db/db.sql

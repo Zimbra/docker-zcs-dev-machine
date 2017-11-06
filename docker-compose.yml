@@ -1,15 +1,58 @@
 version: "3.3"
 
 services:
+  zmc-mysql:
+    image: "zimbra/zmc-mysql"
+    hostname: "zmc-mysql"
+    container_name: "zmc-mysql"
+    env_file: .env
+    volumes:
+      - .:/code
+      - ./bin:/home
+      - $HOME_ZIMBRA:/home/zimbra/
+      - ./mysql:/mysql_setup
+    secrets:
+      - mysql.password
+    entrypoint:
+      - /mysql_setup/init
+    networks:
+      default:
+        ipv4_address: 10.0.0.5
+    ports:
+      - "7306:7306"
+  redis:
+    image: library/redis
+    hostname: redis
+    container_name: redis 
+    ports:
+      - 6379:6379
+      - 6379:6379/udp
+    networks:
+      default:
+        ipv4_address: 10.0.0.6
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    hostname: redis-commander
+    container_name: redis-commander
+    restart: always
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    ports:
+      - 8081:8081
+    networks:
+      default:
+        ipv4_address: 10.0.0.7
   zcs-dev:
     image: zimbra/zcs-dev:8.8.5ga
     depends_on:
+      - zmc-mysql
       - solr
     env_file: .env
     entrypoint:
       - /zimbra/init
     volumes:
       - $REPO_DIR/slash-zimbra:/zimbra
+      - ./bin:/home
       - $HOME_ZIMBRA:/home/zimbra
     container_name: zcs-dev
     domainname: test
@@ -37,6 +80,12 @@ services:
       - "8983:8983"
     volumes:
       - $REPO_DIR/solr:/solr
+
+
+secrets:
+   mysql.password:
+     file: ./.secrets/mysql.password
+     
 
 networks:
   default:

@@ -75,20 +75,20 @@ for r in zm-zcs zm-ldap-utilities; do
     fi
 done
 
-log_info "installing zmupgrade.pm"
-cp zm-build/rpmconf/Upgrade/zmupgrade.pm /opt/zimbra/libexec/zmupgrade.pm
-chmod 755 /opt/zimbra/libexec/zmupgrade.pm
+#log_info "installing zmupgrade.pm"
+#cp zm-build/rpmconf/Upgrade/zmupgrade.pm /opt/zimbra/libexec/zmupgrade.pm
+#chmod 755 /opt/zimbra/libexec/zmupgrade.pm
 
-log_info "installing database migration script"
-cp zm-db-conf/src/db/migration/migrate20170829-SearchHistory.pl /opt/zimbra/libexec/scripts/migrate20170829-SearchHistory.pl
-chmod 775 /opt/zimbra/libexec/scripts/migrate20170829-SearchHistory.pl
+#log_info "installing database migration script"
+#cp zm-db-conf/src/db/migration/migrate20170829-SearchHistory.pl /opt/zimbra/libexec/scripts/migrate20170829-SearchHistory.pl
+#chmod 775 /opt/zimbra/libexec/scripts/migrate20170829-SearchHistory.pl
 
-log_info "patching zmsetup.pl"
-cat zm-build/rpmconf/Install/zmsetup.pl | sed '/use NetAddr/ a\zmupgrade::runSchemaUpgrade(108);\nexit;\n' > /opt/zimbra/libexec/zmsetup.pl
-chmod 755 /opt/zimbra/libexec/zmsetup.pl
+#log_info "patching zmsetup.pl"
+#cat zm-build/rpmconf/Install/zmsetup.pl | sed '/use NetAddr/ a\zmupgrade::runSchemaUpgrade(108);\nexit;\n' > /opt/zimbra/libexec/zmsetup.pl
+#chmod 755 /opt/zimbra/libexec/zmsetup.pl
 
-log_info "running patched zmsetup.pl"
-/opt/zimbra/libexec/zmsetup.pl
+#log_info "running patched zmsetup.pl"
+#/opt/zimbra/libexec/zmsetup.pl
 
 log_info "installing database scripts"
 cp zm-db-conf/src/db/mysql/create_database.sql /opt/zimbra/db/create_database.sql
@@ -107,6 +107,19 @@ sudo -i -u zimbra /bin/bash -c "zmmailboxdctl restart"
 
 
 for j in lucene-core-6.6.0.jar lucene-analyzers-common-6.6.0.jar solr-solrj-6.6.0.jar solr-core-6.6.0.jar noggit-0.7.jar httpmime-4.3.5.jar zookeeper-3.4.5.jar; do 
+    jp=$(find /home/zimbra/.ivy2/cache -name $j)
+        log_info "installing $jp"
+	cp $jp /opt/zimbra/lib/jars/
+	cp $jp /opt/zimbra/jetty/webapps/service/WEB-INF/lib/
+done
+
+log_info "move ditributed lock libraries"
+for j in redisson-3.5.6.jar \
+netty-all-4.1.13.Final.jar \
+jackson-core-2.7.6.jar \
+jackson-annotations-2.7.0.jar \
+jackson-databind-2.7.6.jar \
+jackson-dataformat-yaml-2.7.6.jar; do 
     jp=$(find /home/zimbra/.ivy2/cache -name $j)
         log_info "installing $jp"
 	cp $jp /opt/zimbra/lib/jars/

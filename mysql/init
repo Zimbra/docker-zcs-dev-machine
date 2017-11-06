@@ -1,0 +1,14 @@
+#!/bin/bash
+# usage: slapadd [-v] [-d debuglevel] [-f configfile] [-F configdir] [-o <name>[=<value>]] [-c]
+#         [-g] [-n databasenumber | -b suffix]
+#         [-l ldiffile] [-j linenumber] [-q] [-u] [-s] [-w]
+
+# This script was made to update the DB Schema Due to some changes made to extract the SOLR container from zcs-dev
+chmod +x /home/configure-zmc-mysql-for-solr
+
+sed \
+-i.bak 's/\"\/opt\/zimbra\/bin\/mysql.server\", \"start\" ], }, }; },/ & sub { { desc => "Update Schema", exec => {user => "root", args => ["\/home\/configure-zmc-mysql-for-solr"], }, }; },/g' \
+entry-point.pl 
+
+./entry-point.pl
+sleep infinity
