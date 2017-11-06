@@ -4,6 +4,12 @@
 #         [-l ldiffile] [-j linenumber] [-q] [-u] [-s] [-w]
 
 sudo -i -u zimbra zmcontrol stop
+
+# special post install fixes
+rm -f /opt/zimbra/common/sbin/mysqld                                                           # FIXME: mysql.server should not be required with zimbra-store
+sed -i -e '/^\(START\|STOP\)_ORDER/ { s/\s\?mysql.server\s\?//; }' /opt/zimbra/bin/zmstorectl  # FIXME: mysql.server should not be required with zimbra-store
+sudo -i -u zimbra /opt/zimbra/bin/zmlocalconfig -f -e mysql_bind_address='zmc-mysql' mysql_port='7306' zimbra_mysql_password='f9teams'
+
 rm -f /opt/zimbra/data/ldap/mdb/db/data.mdb
 sudo -i -u zimbra /bin/bash -c "/opt/zimbra/common/sbin/slapadd -q -b '' -F '/opt/zimbra/data/ldap/config' -l '/opt/zimbra/data/ldap/mdb/db/ldap.bak'"
 sudo -i -u zimbra zmcontrol start

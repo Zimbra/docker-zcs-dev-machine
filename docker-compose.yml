@@ -1,16 +1,34 @@
 version: "3.3"
 
 services:
+  zmc-mysql:
+    image: "zimbra/zmc-mysql"
+    hostname: "zmc-mysql"
+    container_name: "zmc-mysql"
+    volumes:
+      - .:/code
+    secrets:
+      - mysql.password
+    networks:
+      default:
+        ipv4_address: 10.0.0.5
+    ports:
+      - "7306:7306"
   zcs-dev:
     image: zimbra/zcs-dev:8.8.4ga
     depends_on:
       - solr
     env_file: .env
+    container_name: zcs-dev
+    hostname: zcs-dev
+    domainname: test
     entrypoint:
       - /zimbra/init
     volumes:
       - $REPO_DIR/slash-zimbra:/zimbra
       - $HOME_ZIMBRA:/home/zimbra
+      - blobvolume:/opt/zimbra/store
+      - tmpvolume:/opt/zimbra/data/tmp
     container_name: zcs-dev
     domainname: test
     hostname: zcs-dev
@@ -38,10 +56,18 @@ services:
     volumes:
       - $REPO_DIR/solr:/solr
 
+secrets:
+  mysql.password:
+    file: .secrets/mysql.password
+
 networks:
   default:
     driver: bridge
     ipam:
       driver: default
       config:
-        - subnet: 10.0.0.0/24
+      - subnet: 10.0.0.0/24
+
+volumes:
+  blobvolume: {}
+  tmpvolume: {}
