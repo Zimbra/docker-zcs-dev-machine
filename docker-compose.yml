@@ -29,6 +29,15 @@ services:
     networks:
       default:
         ipv4_address: 10.0.0.6
+  redis:
+    image: library/redis
+    container_name: redis 
+    ports:
+      - 6379:6379
+      - 6379:6379/udp
+    networks:
+      default:
+        ipv4_address: 10.0.0.7
   zcs-dev:
     image: zimbra/zcs-dev:8.8.4ga
     depends_on:
