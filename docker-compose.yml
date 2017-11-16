@@ -14,21 +14,6 @@ services:
         ipv4_address: 10.0.0.5
     ports:
       - "7306:7306"
-  consul:
-    image: library/consul
-    container_name: consul-agent
-    ports:
-      - 8300:8300
-      - 8301:8301
-      - 8301:8301/udp
-      - 8302:8302
-      - 8302:8302/udp
-      - 8400:8400
-      - 8500:8500
-      - 53:53/udp
-    networks:
-      default:
-        ipv4_address: 10.0.0.6
   redis:
     image: library/redis
     hostname: redis
@@ -38,12 +23,11 @@ services:
       - 6379:6379/udp
     networks:
       default:
-        ipv4_address: 10.0.0.7
+        ipv4_address: 10.0.0.6
   redis-commander:
     image: rediscommander/redis-commander:latest
     hostname: redis-commander
     container_name: redis-commander
-    build: .
     restart: always
     environment:
       - REDIS_HOSTS=local:redis:6379
@@ -51,7 +35,7 @@ services:
       - 8081:8081
     networks:
       default:
-        ipv4_address: 10.0.0.8
+        ipv4_address: 10.0.0.7
   zcs-dev:
     image: zimbra/zcs-dev:8.8.4ga
     depends_on:
