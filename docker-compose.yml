@@ -5,8 +5,10 @@ services:
     image: "zimbra/zmc-mysql"
     hostname: "zmc-mysql"
     container_name: "zmc-mysql"
+    env_file: .env
     volumes:
       - .:/code
+      - $HOME_ZIMBRA:/home/zimbra/
     secrets:
       - mysql.password
     networks:
@@ -39,6 +41,7 @@ services:
   zcs-dev:
     image: zimbra/zcs-dev:8.8.4ga
     depends_on:
+      - zmc-mysql
       - solr
     env_file: .env
     container_name: zcs-dev

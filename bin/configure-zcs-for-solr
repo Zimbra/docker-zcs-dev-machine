@@ -75,20 +75,20 @@ for r in zm-zcs zm-ldap-utilities; do
     fi
 done
 
-log_info "installing zmupgrade.pm"
-cp zm-build/rpmconf/Upgrade/zmupgrade.pm /opt/zimbra/libexec/zmupgrade.pm
-chmod 755 /opt/zimbra/libexec/zmupgrade.pm
+#log_info "installing zmupgrade.pm"
+#cp zm-build/rpmconf/Upgrade/zmupgrade.pm /opt/zimbra/libexec/zmupgrade.pm
+#chmod 755 /opt/zimbra/libexec/zmupgrade.pm
 
-log_info "installing database migration script"
-cp zm-db-conf/src/db/migration/migrate20170829-SearchHistory.pl /opt/zimbra/libexec/scripts/migrate20170829-SearchHistory.pl
-chmod 775 /opt/zimbra/libexec/scripts/migrate20170829-SearchHistory.pl
+#log_info "installing database migration script"
+#cp zm-db-conf/src/db/migration/migrate20170829-SearchHistory.pl /opt/zimbra/libexec/scripts/migrate20170829-SearchHistory.pl
+#chmod 775 /opt/zimbra/libexec/scripts/migrate20170829-SearchHistory.pl
 
-log_info "patching zmsetup.pl"
-cat zm-build/rpmconf/Install/zmsetup.pl | sed '/use NetAddr/ a\zmupgrade::runSchemaUpgrade(108);\nexit;\n' > /opt/zimbra/libexec/zmsetup.pl
-chmod 755 /opt/zimbra/libexec/zmsetup.pl
+#log_info "patching zmsetup.pl"
+#cat zm-build/rpmconf/Install/zmsetup.pl | sed '/use NetAddr/ a\zmupgrade::runSchemaUpgrade(108);\nexit;\n' > /opt/zimbra/libexec/zmsetup.pl
+#chmod 755 /opt/zimbra/libexec/zmsetup.pl
 
-log_info "running patched zmsetup.pl"
-/opt/zimbra/libexec/zmsetup.pl
+#log_info "running patched zmsetup.pl"
+#/opt/zimbra/libexec/zmsetup.pl
 
 log_info "installing database scripts"
 cp zm-db-conf/src/db/mysql/create_database.sql /opt/zimbra/db/create_database.sql
