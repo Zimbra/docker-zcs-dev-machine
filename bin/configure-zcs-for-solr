@@ -113,6 +113,23 @@ for j in lucene-core-6.6.0.jar lucene-analyzers-common-6.6.0.jar solr-solrj-6.6.
 	cp $jp /opt/zimbra/jetty/webapps/service/WEB-INF/lib/
 done
 
+log_info "mv ditributed lock libraries"
+for j in redisson-3.1.0.jar \
+netty-buffer-4.0.42.Final.jar \
+netty-codec-4.0.42.Final.jar \
+netty-common-4.0.42.Final.jar \
+netty-handler-4.0.42.Final.jar \
+netty-transport-4.0.42.Final.jar \
+jackson-annotations-2.7.0.jar \
+jackson-core-2.7.6.jar \
+jackson-databind-2.7.6.jar \
+jackson-dataformat-yaml-2.7.6.jar; do 
+    jp=$(find /home/zimbra/.ivy2/cache -name $j)
+        log_info "installing $jp"
+    cp $jp /opt/zimbra/lib/jars/
+    cp $jp /opt/zimbra/jetty/webapps/service/WEB-INF/lib/
+done
+
 log_info "fixing jar directory permissions"
 chmod -R a+r /opt/zimbra/lib/jars
 chmod -R a+r /opt/zimbra/jetty/webapps/service/WEB-INF/lib

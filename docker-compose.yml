@@ -9,8 +9,12 @@ services:
     volumes:
       - .:/code
       - $HOME_ZIMBRA:/home/zimbra/
+      - ./bin:/home
+      - ./mysql:/mysql_setup
     secrets:
       - mysql.password
+    entrypoint:
+      - /mysql_setup/init
     networks:
       default:
         ipv4_address: 10.0.0.5
