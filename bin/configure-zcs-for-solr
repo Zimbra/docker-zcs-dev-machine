@@ -28,8 +28,7 @@
 # TODO - update this to point to the top-level directory where you have all of your repos checked out.
 zcs=/home/zimbra/zcs
 
-# Provide a default value for SOLR_MODE in cause it was not provided
-SOLR_MODE=${SOLR_MODE:-cloud}
+[ -z "$SOLR_MODE" ] && echo "SOLR_MODE not defined" && exit 1
 
 if [ $(whoami) != "root" ]
 then
@@ -100,6 +99,13 @@ chmod 444 /opt/zimbra/db/db.sql
 log_info "purging old lucene jar files"
 find /opt/zimbra -name 'lucene-*3.5*.jar' -delete
 
+for d in native common soap client store; do 
+    log_info "publishing local deps for zm-mailbox/$d"
+    sudo -i -u zimbra /bin/bash -c "cd $zcs/zm-mailbox/$d; ant clean compile publish-local"
+done
+sudo -i -u zimbra /bin/bash -c "zmmailboxdctl restart"
+
+
 for j in lucene-core-6.6.0.jar lucene-analyzers-common-6.6.0.jar solr-solrj-6.6.0.jar solr-core-6.6.0.jar noggit-0.7.jar httpmime-4.3.5.jar zookeeper-3.4.5.jar; do 
     jp=$(find /home/zimbra/.ivy2/cache -name $j)
         log_info "installing $jp"
@@ -113,7 +119,7 @@ chmod -R a+r /opt/zimbra/jetty/webapps/service/WEB-INF/lib
 
 for d in native common soap client store; do 
     log_info "deploying zm-mailbox/$d"
-    sudo -i -u zimbra /bin/bash -c "cd $zcs/zm-mailbox/$d; ant clean compile publish-local deploy"
+    sudo -i -u zimbra /bin/bash -c "cd $zcs/zm-mailbox/$d; ant deploy"
 done
 sudo -i -u zimbra /bin/bash -c "zmmailboxdctl restart"
 
