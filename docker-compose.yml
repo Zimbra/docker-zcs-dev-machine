@@ -8,8 +8,8 @@ services:
     env_file: .env
     volumes:
       - .:/code
-      - $HOME_ZIMBRA:/home/zimbra/
       - ./bin:/home
+      - $HOME_ZIMBRA:/home/zimbra/
       - ./mysql:/mysql_setup
     secrets:
       - mysql.password
@@ -55,6 +55,7 @@ services:
       - /zimbra/init
     volumes:
       - $REPO_DIR/slash-zimbra:/zimbra
+      - ./bin:/home
       - $HOME_ZIMBRA:/home/zimbra
       - blobvolume:/opt/zimbra/store
       - tmpvolume:/opt/zimbra/data/tmp
