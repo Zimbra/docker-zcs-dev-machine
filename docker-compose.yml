@@ -3,6 +3,8 @@ version: "3.3"
 services:
   zcs-dev:
     image: zimbra/zcs-dev:8.8.5ga
+    depends_on:
+      - solr
     env_file: .env
     entrypoint:
       - /zimbra/init
@@ -23,6 +25,18 @@ services:
       - "8993:993"
       - "9998:9998"
       - "9999:9999"
+  solr:
+    image: zimbra/zm-solr-docker
+    container_name: solr
+    env_file: .env
+    networks:
+      default:
+        ipv4_address: 10.0.0.4
+    entrypoint: /solr/entrypoint
+    ports:
+      - "8983:8983"
+    volumes:
+      - $REPO_DIR/solr:/solr
 
 networks:
   default:

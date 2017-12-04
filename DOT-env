@@ -17,3 +17,10 @@ HOME_ZIMBRA=./home-zimbra
 REPO_DIR=.
 #HOME_ZIMBRA=/c/Users/gordy/Projects/d/docker-zcs-dev-machine/home-zimbra
 #REPO_DIR=/c/Users/gordy/Projects/d/docker-zcs-dev-machine
+### IMPORTANT:
+### See the README file for details about the following
+# Environment variables that control SOLR
+# SOLR_MODE cloud|standalone
+# SOLR_MEMORY <solr-memory-allocation-spec>
+SOLR_MODE=cloud
+SOLR_MEMORY=2g
