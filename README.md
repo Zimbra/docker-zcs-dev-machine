@@ -101,6 +101,15 @@ Install docker-compose.
     curl -L https://github.com/docker/compose/releases/download/1.15.0/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
     sudo chmod +x /usr/local/bin/docker-compose
 
+## Container Installation
+
+Clone the dev machine docker image (this repo):
+
+    git clone https://github.com/Zimbra/docker-zcs-dev-machine.git
+    
+Check out the version you want to work with, e.g. for "develop" branch:
+
+    git checkout -b develop origin/develop
 
 ## Additional Configuration
 
